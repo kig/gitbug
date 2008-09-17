@@ -1,5 +1,6 @@
 Gitbug is an in-repo bug tracker for Git repositories.
 
+
 Installation:
 
   0. Install ocamlfind, omake and the OCaml libraries pcre and netstring.
@@ -54,3 +55,6 @@ Usage:
   You can see your bug history in git's log:
     $ git log
 
+License:
+
+  X11 / MIT License
