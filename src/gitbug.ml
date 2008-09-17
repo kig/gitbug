@@ -343,7 +343,7 @@ let use_autoclose _ =
       | "#!/bin/sh"::t -> any (not @. xmatch "^\\s*([:#].*|\\s*)$") t
       | _ -> true in
   let post_commit = git_dir () ^/ "hooks" ^/ "post-commit" in
-  if fileExists post_commit && edited post_commit
+  if not (fileExists post_commit) || edited post_commit
   then begin
     puts ".git/hooks/post-commit has been edited";
     puts "Please add the autoclose hook manually by calling:";
