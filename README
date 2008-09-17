@@ -46,6 +46,12 @@ Usage:
   That fix wasn't a fix at all, let us reopen the bug:
     $ gitbug reopen 1
 
+  Make a second bug:
+    $ gitbug add Bug number two
+
+  Oh, it is a duplicate of the first bug:
+    $ gitbug merge 1 2
+
   Listing bugs is most useful:
     $ gitbug
     $ gitbug open

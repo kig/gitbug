@@ -361,7 +361,7 @@ let handle_cmd cmd =
     printfnl "usage: %s CMD [OPTIONS]" (basename Sys.argv.(0));
     printfnl "\nCommands:";
     printfnl "\n  Initialize bug tracker:\n    init";
-    printfnl "\n  Manage bugs:\n    add close edit reopen show";
+    printfnl "\n  Manage bugs:\n    add close edit merge reopen show";
     printfnl "\n  List bugs:\n    list all closed open";
     printfnl "\n  Close bugs with \"FIX[bug_number]\" in commit message:\n    autoclose";
     printfnl "\n  Add post-commit hook for autoclose:\n    use_autoclose";
