@@ -24,3 +24,12 @@ bugs
 
 Proposed solution:
  Use truncated hash?
+
+-- edited by Ilmari Heikkinen <ilmari.heikkinen@gmail.com> on 2008-09-18 01:27:13+0300
+
+Eridius on #ocaml had the following idea:
+ Use a truncated hash internally.
+ FIX[x] in commit message references to either unique hash prefix or 
+ position on current open list (list should print stable position numbers.)
+ Have a commit-msg hook that edits FIX[x] into FIX[hash]
+
