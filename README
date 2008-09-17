@@ -15,6 +15,9 @@ Installation:
 
 Usage:
 
+  List of commands:
+    $ gitbug help
+
   You need a Git repository:
     $ mkdir my_git_repo
     $ cd my_git_repo
