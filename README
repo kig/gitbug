@@ -61,6 +61,15 @@ Usage:
   You can see your bug history in git's log:
     $ git log
 
+
 License:
 
   X11 / MIT License
+  Copyright (C) 2008  Ilmari Heikkinen <ilmari.heikkinen@gmail.com>
+                      Mauricio Fernandez <mfp@acm.org>
+
+
+Webpage:
+
+  http://github.com/kig/gitbug/tree/master
+
