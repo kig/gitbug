@@ -1,0 +1,50 @@
+Gitbug is an in-repo bug tracker for Git repositories.
+
+Installation:
+
+  1. Compile
+    $ omake
+
+  2. Copy the executable to somewhere in your path
+    $ cp gitbug.opt ~/bin/gitbug
+
+Usage:
+
+  You need a Git repository:
+    $ mkdir my_git_repo
+    $ cd my_git_repo
+    $ git init
+
+  Then you should initialize the bug tracker:
+    $ gitbug init
+
+  And add a bug:
+    $ gitbug add This is my first bug
+
+  Maybe look at it and edit it:
+    $ gitbug
+    $ gitbug show 1
+    $ gitbug edit 1
+
+  You could also fix the bug:
+    $ echo my great fix >> foo
+
+  And then tell Gitbug what you did:
+    $ git commit -a -m 'foo: fixed bug, FIX[1]'
+  or
+    $ git commit -a -m 'foo: fixed bug'
+    $ gitbug close 1
+
+  That fix wasn't a fix at all, let us reopen the bug:
+    $ gitbug reopen 1
+
+  Listing bugs is most useful:
+    $ gitbug
+    $ gitbug list [all|open|closed]
+    $ gitbug open
+    $ gitbug closed
+    $ gitbug all
+
+  You can see your bug history in git's log:
+    $ git log
+
