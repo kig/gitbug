@@ -1,0 +1,26 @@
+title: Bug number conflicts when merging repos
+status: OPEN
+date: 2008-09-18 00:50:41+0300
+author: Ilmari Heikkinen <ilmari.heikkinen@gmail.com>
+
+-- opened by Ilmari Heikkinen <ilmari.heikkinen@gmail.com> on 2008-09-18 00:50:41+0300
+
+Problem description:
+ Merging two repositories with new bugs added will cause several
+ bugs with the same id.
+
+How to reproduce:
+ git checkout -b foo
+ gitbug add foo
+ git checkout master
+ gitbug add bar
+ git merge foo
+ tree bugs
+bugs
+|-- all
+|   |-- 0001_bar
+|   `-- 0001_foo
+ 
+
+Proposed solution:
+ Use truncated hash?
