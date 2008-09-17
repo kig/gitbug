@@ -1,0 +1,33 @@
+NATIVE_ENABLED = true
+
+USE_OCAMLFIND = true
+
+.PHONY: clean
+clean:
+	rm -f *.cmi *.cmo *.cmx *.cmxa *.cma *.annot *.s *.o *.opt \
+	    *.run *.a *.inc
+
+%.sig: %.ml %.cmo
+	$(OCAMLFIND) $(OCAMLC) -package $(concat \,, $(OCAMLPACKS)) \
+	    $(mapprefix -I, $(OCAMLINCLUDES)) \
+	    $(OCAMLFLAGS) $(OCAMLCFLAGS) -i $< > $@
+
+if $(not $(defined-env TEST))
+    OCAMLFLAGS  =  -g
+    OCAMLCFLAGS += -dtypes
+    OCAML_BYTE_LINK_FLAGS = -g
+
+if $(not $(OCAMLFIND_EXISTS))
+   eprintln(This project requires ocamlfind, but is was not found.)
+   eprintln(You need to install ocamlfind and run "omake --configure".)
+   exit 1
+
+OCAMLCFLAGS += -dtypes
+
+.SUBDIRS: src
+
+section
+	OCAMLPACKS[] = pcre unix netstring
+	OCamlProgram(gitbug, src/prelude src/gitbug)
+
+.DEFAULT: gitbug$(EXE)

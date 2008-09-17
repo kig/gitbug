@@ -1,0 +1,12 @@
+/.*
+/*/.*
+*.cmi
+*.cmx
+*.cmxa
+*.o
+*.a
+*.omc
+gitbug
+gitbug.opt
+
+

@@ -1,0 +1,14 @@
+NATIVE_ENABLED = true
+
+USE_OCAMLFIND = true
+
+OCAMLPACKS[] = unix pcre netstring
+OCamlLibrary(gitbug, prelude gitbug)
+
+.DEFAULT: gitbug.cmxa
+
+.PHONY: clean
+
+clean:
+	rm -f $(filter-proper-targets $(ls R, .))
+
