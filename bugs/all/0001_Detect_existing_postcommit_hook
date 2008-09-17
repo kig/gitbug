@@ -1,5 +1,5 @@
 title: Detect existing post-commit hook
-status: OPEN
+status: CLOSED
 date: 2008-09-18 00:48:51+0300
 author: Ilmari Heikkinen <ilmari.heikkinen@gmail.com>
 
@@ -12,3 +12,7 @@ Problem description:
 Proposed solution:
  Check whether there exists a post-commit hook,
  tell user to add the autoclose to the hook manually.
+-- closed by Ilmari Heikkinen <ilmari.heikkinen@gmail.com> on 2008-09-18 01:13:55+0300
+
+FIXED
+
