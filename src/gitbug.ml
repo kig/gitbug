@@ -360,13 +360,13 @@ let handle_cmd cmd =
 
     printfnl "usage: %s CMD [OPTIONS]" (basename Sys.argv.(0));
     printfnl "\nCommands:";
-    printfnl "  Initialize bug tracker: init";
-    printfnl "  Manage bugs: add close edit reopen show";
-    printfnl "  List bugs: list all closed open";
-    printfnl "  Close bugs with \"FIX[bug_number]\" in commit message: autoclose";
-    printfnl "  Add post-commit hook for autoclose: use_autoclose (init does this";
-    printfnl "  for you already, you only need this if you haven't done init:";
-    printfnl "  i.e. if you're using someone else's repo.)";
+    printfnl "\n  Initialize bug tracker:\n    init";
+    printfnl "\n  Manage bugs:\n    add close edit reopen show";
+    printfnl "\n  List bugs:\n    list all closed open";
+    printfnl "\n  Close bugs with \"FIX[bug_number]\" in commit message:\n    autoclose";
+    printfnl "\n  Add post-commit hook for autoclose:\n    use_autoclose";
+    printfnl "      init does this for you already, you only need this if you";
+    printfnl "      haven't done init: i.e. if you're using someone else's repo.\n";
     exit 0 in
   let f = match cmd with
     | "add" -> add
