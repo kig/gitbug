@@ -1,0 +1,14 @@
+title: Detect existing post-commit hook
+status: OPEN
+date: 2008-09-18 00:48:51+0300
+author: Ilmari Heikkinen <ilmari.heikkinen@gmail.com>
+
+-- opened by Ilmari Heikkinen <ilmari.heikkinen@gmail.com> on 2008-09-18 00:48:51+0300
+
+Problem description:
+ gitbug init or gitbug use_autoclose 
+ can screw up an existing post-commit hook
+
+Proposed solution:
+ Check whether there exists a post-commit hook,
+ tell user to add the autoclose to the hook manually.
