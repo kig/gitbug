@@ -91,7 +91,9 @@ struct
                  "status", string_of_status status;
                  "author", name_and_email ();
                  "date", showTime @@ timeNow ();
-                 "title", name
+                 "title", name;
+                 "reported by", "";
+                 "assigned to", "";
                ]
     in { headers = hs; body = strip_blank_lines body }
 
