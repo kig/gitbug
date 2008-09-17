@@ -14,6 +14,9 @@ Usage:
     $ mkdir my_git_repo
     $ cd my_git_repo
     $ git init
+    $ echo buggy foo > foo
+    $ git add foo
+    $ git commit -m 'buggy foo'
 
   Then you should initialize the bug tracker:
     $ gitbug init
