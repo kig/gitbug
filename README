@@ -43,7 +43,6 @@ Usage:
 
   Listing bugs is most useful:
     $ gitbug
-    $ gitbug list [all|open|closed]
     $ gitbug open
     $ gitbug closed
     $ gitbug all
