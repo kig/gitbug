@@ -5,7 +5,7 @@ Installation:
 
   0. Install ocamlfind, omake and the OCaml libraries pcre and netstring.
     On a Debian/Ubuntu:
-    $ sudo apt-get install libocamlnet-ocaml libpcre-ocaml omake ocaml-findlib
+    $ sudo apt-get install libocamlnet-ocaml-dev libpcre-ocaml-dev omake ocaml-findlib
 
   1. Compile
     $ omake
