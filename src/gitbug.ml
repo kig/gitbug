@@ -150,9 +150,9 @@ let new_normalized_name = xreplaceMulti ["[^a-zA-Z0-9\\s]", ""; "\\s+", "_"]
 
 let new_id () =
   let t = timeNow () in
-  let s = (int t land 0xffff) in
+  let s = int t in
   let fs = int ((t -. floor t) *. 65536.) in
-  sprintf "%04x%04x%02x" s fs (Random.int 255)
+  sprintf "%08x%04x" s fs
  
 
 let readGit cmd args = readCmd ("git"::cmd::args)
