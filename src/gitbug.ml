@@ -189,9 +189,9 @@ let template tmpl name =
     "%NAME%", name;
   ]
 
-let file_id fname = match rexscan_nth (rex "^[0-9]+") 0 fname with
-    [id] -> int_of_string id
-  | _ -> -1
+let file_id fname = match rexscan_nth (rex "^[0-9a-z]+") 0 fname with
+    [id] -> id
+  | _ -> ""
 
 let file_with_id dir id =
   try
@@ -239,7 +239,7 @@ let git_bug_autoclose = git_do (fun bugs ->
     close_bug bug;
     git "commit" [
       "--quiet";
-      "-m"; (sprintf "BUG closed: [%d] %s" id name);
+      "-m"; (sprintf "BUG closed: [%s] %s" id name);
       bug;
       dir_of_status `Close ^/ base;
       dir_of_status `Open ^/ base;
@@ -252,7 +252,7 @@ let git_bug_close = git_do (fun id ->
   append_to_file `Close bug @@ template "close" name;
   git_edit bug;
   close_bug bug;
-  git_commit (sprintf "BUG closed: [%d] %s" id name))
+  git_commit (sprintf "BUG closed: [%s] %s" id name))
 
 let git_bug_reopen = git_do (fun id ->
   let bug = bug_file id in
@@ -260,14 +260,14 @@ let git_bug_reopen = git_do (fun id ->
   append_to_file `Open bug @@ template "reopen" name;
   git_edit bug;
   open_bug bug;
-  git_commit (sprintf "BUG reopened: [%d] %s" id name))
+  git_commit (sprintf "BUG reopened: [%s] %s" id name))
 
 let git_bug_edit = git_do (fun id ->
   let bug = bug_file id in
   let name = bug_name id in
   appendFile bug (template "edit" name);
   git_edit bug;
-  git_commit (sprintf "BUG edited: [%d] %s" id name))
+  git_commit (sprintf "BUG edited: [%s] %s" id name))
 
 let git_bug_merge src dst = git_do (fun () ->
   let sfn = bug_file src in
@@ -275,15 +275,15 @@ let git_bug_merge src dst = git_do (fun () ->
   appendFile dfn (template "merge" (bug_name src) ^ readFile sfn);
   remove_symlink `Open sfn;
   git_edit dfn;
-  git_commit (sprintf "BUG merged: [%d] -> [%d]" src dst)) ()
+  git_commit (sprintf "BUG merged: [%s] -> [%s]" src dst)) ()
 
 let get_bug_name = function
   | [] -> printf "Enter bug name: %!"; read_line ()
   | args -> join " " args
 
 let get_bug_id = function
-  | [id] -> int_of_string id
-  | _ -> printf "Enter bug ID: %!"; int_of_string @@ read_line ()
+  | [id] -> id
+  | _ -> printf "Enter bug ID: %!"; read_line ()
 
 let show_bug dir name =
   let time = showTime @@ mtime (dir ^/ name) in
@@ -305,17 +305,17 @@ let autoclose args =
   let last_commit = readGit "log" ["-1"] in
   let bugs = if smatch "    BUG closed:" last_commit then [] else (* prevent loop *)
     last_commit
-    |> scan_nth "\\bFIX[EDS]*:?\\s*\\[((\\d+[^\\d\\]]*)+)\\]" 1
-    |> concatMap (split ",") |> map parseInt in
+    |> scan_nth "\\bFIX[EDS]*:?\\s*\\[(([0-9a-z]+[^[0-9a-z]\\]]*)+)\\]" 1
+    |> concatMap (split ",") in
   match bugs with
     | [] -> ()
     | bugs ->
       git_bug_autoclose bugs;
-      puts (sprintf "Autoclosed bug(s): %s" (map showInt bugs |> join ", "))
+      puts (sprintf "Autoclosed bug(s): %s" (bugs |> join ", "))
 
-let close = do_with_bug_id git_bug_close "Closed bug: %d."
-let reopen = do_with_bug_id git_bug_reopen "Reopened bug: %d."
-let edit = do_with_bug_id git_bug_edit "Edited bug: %d."
+let close = do_with_bug_id git_bug_close "Closed bug: %s."
+let reopen = do_with_bug_id git_bug_reopen "Reopened bug: %s."
+let edit = do_with_bug_id git_bug_edit "Edited bug: %s."
 
 let list args =
   let dir, dir_name = match args with
@@ -332,10 +332,10 @@ let list args =
 
 let merge args =
   let dst, src = match args with
-    | s::d::[] -> int_of_string s, int_of_string d
+    | s::d::[] -> s, d
     | _ -> invalid_arg "merge src dst: wrong amount of args" in
   git_bug_merge src dst;
-  printfnl "Merged bug %d into %d" src dst
+  printfnl "Merged bug %s into %s" src dst
 
 let show args =
   let id = get_bug_id args in
