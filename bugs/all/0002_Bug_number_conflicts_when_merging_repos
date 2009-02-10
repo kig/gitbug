@@ -1,5 +1,5 @@
 title: Bug number conflicts when merging repos
-status: OPEN
+status: CLOSED
 date: 2008-09-18 00:50:41+0300
 author: Ilmari Heikkinen <ilmari.heikkinen@gmail.com>
 
@@ -32,4 +32,11 @@ Eridius on #ocaml had the following idea:
  FIX[x] in commit message references to either unique hash prefix or 
  position on current open list (list should print stable position numbers.)
  Have a commit-msg hook that edits FIX[x] into FIX[hash]
+-- closed by Ilmari Heikkinen on 2009-02-10 20:30:48+0200
+
+FIXED
+
+using a 6-byte timestamp now, it won't collide as easily
+but it's a usability nightmare
+
 
