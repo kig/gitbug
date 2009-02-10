@@ -149,8 +149,11 @@ let dir_of_status = function
 let new_normalized_name = xreplaceMulti ["[^a-zA-Z0-9\\s]", ""; "\\s+", "_"]
 
 let new_id () =
-  ls (all_bugs_dir ()) |> map (xfindOpt "^[0-9]+(?=_)") |> compact |>
-  map int_of_string |> sort |> maybeE "0001" (sprintf "%04d" @. succ @. last)
+  let t = timeNow () in
+  let s = (int t land 0xffff) in
+  let fs = int ((t -. floor t) *. 65536.) in
+  sprintf "%04x%04x%02x" s fs (Random.int 255)
+ 
 
 let readGit cmd args = readCmd ("git"::cmd::args)
 let git cmd args = flush stdout; command ("git"::cmd::args)
