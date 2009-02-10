@@ -28,7 +28,7 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 open Prelude
 
-let editor () = maybeNF "/usr/bin/vi" Sys.getenv "EDITOR"
+let editor () = maybeNF "/bin/vi" Sys.getenv "EDITOR"
 let editorCmd () = editor () |> strip |> xsplit "\\s+"
 let editFile filename = command (editorCmd () @ [filename])
 
