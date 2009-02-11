@@ -152,7 +152,7 @@ let new_id () =
   let t = timeNow () in
   let s = int t in
   let fs = int ((t -. floor t) *. 65536.) in
-  sprintf "%08x%04x" s fs
+  sprintf "%08x%04x" s fs |> srev
  
 
 let readGit cmd args = readCmd ("git"::cmd::args)
