@@ -240,21 +240,25 @@ let git_bug_add = git_do (fun name ->
   git_commit (sprintf "BUG added: [%s] %s" id name))
 
 let git_bug_autoclose = git_do (fun bugs ->
-  bugs |> iter (fun id ->
-    let bug, id = bug_file ~dir:(dir_of_status `Open) id in
-    let name = bug_name id in
-    let base = basename bug in
-    append_to_file `Close bug @@ template "autoclose" name;
-    git_add bug;
-    close_bug bug;
-    git "commit" [
-      "--quiet";
-      "-m"; (sprintf "BUG closed: [%s] %s" id name);
-      bug;
-      dir_of_status `Close ^/ base;
-      dir_of_status `Open ^/ base;
-    ]
-  ))
+  bugs |> iter begin fun id ->
+    try
+      print_endline id;
+      let bug, id = bug_file ~dir:(dir_of_status `Open) id in
+      let name = bug_name id in
+      let base = basename bug in
+      append_to_file `Close bug @@ template "autoclose" name;
+      git_add bug;
+      close_bug bug;
+      git "commit" [
+        "--quiet";
+        "-m"; (sprintf "BUG closed: [%s] %s" id name);
+        bug;
+        all_bugs_dir () ^/ base;
+        dir_of_status `Close ^/ base;
+        dir_of_status `Open ^/ base;
+      ]
+    with _ -> ()
+  end)
 
 let git_bug_close = git_do (fun id ->
   let bug, id = bug_file id in
@@ -315,8 +319,8 @@ let autoclose args =
   let last_commit = readGit "log" ["-1"] in
   let bugs = if smatch "    BUG closed:" last_commit then [] else (* prevent loop *)
     last_commit
-    |> scan_nth "\\bFIX[EDS]*:?\\s*\\[(([0-9a-z]+[^[0-9a-z]\\]]*)+)\\]" 1
-    |> concatMap (split ",") in
+    |> scan_nth "\\bFIX[EDS]*:?\\s*\\[([0-9a-f,\n ]+)\\]" 1
+    |> concatMap (xsplit "[ ,\n]+") in
   match bugs with
     | [] -> ()
     | bugs ->
