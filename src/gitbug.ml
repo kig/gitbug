@@ -209,8 +209,7 @@ let new_bug_file name =
   let id = new_id () in
     (id, all_bugs_dir () ^/ (id ^ "_" ^  new_normalized_name name))
 
-let bug_file id =
-  let dir = all_bugs_dir () in
+let bug_file ?(dir = all_bugs_dir ()) id =
   let f = file_with_id dir id in
     (dir ^/ f, xfind "[^_]+" f)
 
@@ -242,7 +241,7 @@ let git_bug_add = git_do (fun name ->
 
 let git_bug_autoclose = git_do (fun bugs ->
   bugs |> iter (fun id ->
-    let bug, id = bug_file id in
+    let bug, id = bug_file ~dir:(dir_of_status `Open) id in
     let name = bug_name id in
     let base = basename bug in
     append_to_file `Close bug @@ template "autoclose" name;
