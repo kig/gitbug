@@ -1,0 +1,12 @@
+title: broken autoclose
+status: OPEN
+reported by: 
+date: 2009-02-11 16:25:51+0100
+author: Mauricio Fernandez
+assigned to: 
+
+-- opened by Mauricio Fernandez on 2009-02-11 16:25:51+0100
+
+Problem description:
+
+FIXED: [id]  doesn't work as it should.
