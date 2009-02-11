@@ -1,5 +1,5 @@
 title: broken autoclose
-status: OPEN
+status: CLOSED
 reported by: 
 date: 2009-02-11 16:25:51+0100
 author: Mauricio Fernandez
@@ -10,3 +10,7 @@ assigned to:
 Problem description:
 
 FIXED: [id]  doesn't work as it should.
+-- closed by Mauricio Fernandez on 2009-02-11 16:29:34+0100
+
+FIXED
+
