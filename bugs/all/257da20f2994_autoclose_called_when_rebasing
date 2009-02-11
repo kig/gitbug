@@ -1,0 +1,22 @@
+title: autoclose called when rebasing, leading to conflicts
+status: OPEN
+reported by: 
+date: 2009-02-11 16:35:06+0100
+author: Mauricio Fernandez
+assigned to: 
+
+-- opened by Mauricio Fernandez on 2009-02-11 16:35:06+0100
+
+Problem description:
+
+When doing a rebase, autoclose kicks in after each commit is re-applied,
+resulting in a conflict in the bug (different close date).
+
+How to reproduce:
+
+git rebase -i some_commit_before_an_autoclosed_bug
+
+Proposed solution:
+
+Somehow detect when we're in the middle of a rebase. git knows that, so it
+must be creating some file in .git.
