@@ -1,5 +1,5 @@
 title: autoclose should ignore closed bugs in abbreviated id resolution
-status: OPEN
+status: CLOSED
 reported by: 
 date: 2009-02-11 15:58:39+0100
 author: Mauricio Fernandez
@@ -10,3 +10,8 @@ assigned to:
 Problem description:
 
 gitbugs looks for a unique match in all/, when open/ suffices.
+
+-- closed by Mauricio Fernandez on 2009-02-11 16:28:04+0100
+
+FIXED
+
