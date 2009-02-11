@@ -153,7 +153,7 @@ let new_id () =
   let s = int t in
   let fs = int ((t -. floor t) *. 65536.) in
   sprintf "%08x%04x" s fs |> srev
- 
+
 
 let readGit cmd args = readCmd ("git"::cmd::args)
 let git cmd args = flush stdout; command ("git"::cmd::args)
@@ -189,21 +189,32 @@ let template tmpl name =
     "%NAME%", name;
   ]
 
-let file_id fname = match rexscan_nth (rex "^[0-9a-z]+") 0 fname with
-    [id] -> id
-  | _ -> ""
+
+let matches_id id fname =
+  match rexscan_nth (rex "^[0-9a-z]+") 0 (ssub 0 (slen id) fname) with
+      [id'] when id = id' -> true
+    | _ -> false
 
 let file_with_id dir id =
   try
-    dir ^/ (ls dir |> find ((=) id @. file_id))
+    match ls dir |> filter (matches_id id) with
+        [file] -> file
+      | [] -> raise Not_found
+      | l -> putStrLn @@ "ID " ^ id ^ " is ambiguous. The following bugs match:";
+             iter putStrLn l;
+             failwith "Ambiguous ID."
   with Sys_error _ -> raise Not_found
 
 let new_bug_file name =
   let id = new_id () in
     (id, all_bugs_dir () ^/ (id ^ "_" ^  new_normalized_name name))
 
-let bug_file id = file_with_id (all_bugs_dir ()) id
-let bug_name = Ticket.title @. Ticket.from_file @. bug_file
+let bug_file id =
+  let dir = all_bugs_dir () in
+  let f = file_with_id dir id in
+    (dir ^/ f, xfind "[^_]+" f)
+
+let bug_name = Ticket.title @. Ticket.from_file @. fst @. bug_file
 
 let writeFile file = writeFile @@ make_file_dir file
 let appendFile file = appendFile @@ make_file_dir file
@@ -231,7 +242,7 @@ let git_bug_add = git_do (fun name ->
 
 let git_bug_autoclose = git_do (fun bugs ->
   bugs |> iter (fun id ->
-    let bug = bug_file id in
+    let bug, id = bug_file id in
     let name = bug_name id in
     let base = basename bug in
     append_to_file `Close bug @@ template "autoclose" name;
@@ -247,7 +258,7 @@ let git_bug_autoclose = git_do (fun bugs ->
   ))
 
 let git_bug_close = git_do (fun id ->
-  let bug = bug_file id in
+  let bug, id = bug_file id in
   let name = bug_name id in
   append_to_file `Close bug @@ template "close" name;
   git_edit bug;
@@ -255,7 +266,7 @@ let git_bug_close = git_do (fun id ->
   git_commit (sprintf "BUG closed: [%s] %s" id name))
 
 let git_bug_reopen = git_do (fun id ->
-  let bug = bug_file id in
+  let bug, id = bug_file id in
   let name = bug_name id in
   append_to_file `Open bug @@ template "reopen" name;
   git_edit bug;
@@ -263,15 +274,15 @@ let git_bug_reopen = git_do (fun id ->
   git_commit (sprintf "BUG reopened: [%s] %s" id name))
 
 let git_bug_edit = git_do (fun id ->
-  let bug = bug_file id in
+  let bug, id = bug_file id in
   let name = bug_name id in
   appendFile bug (template "edit" name);
   git_edit bug;
   git_commit (sprintf "BUG edited: [%s] %s" id name))
 
 let git_bug_merge src dst = git_do (fun () ->
-  let sfn = bug_file src in
-  let dfn = bug_file dst in
+  let sfn, src = bug_file src in
+  let dfn, dst = bug_file dst in
   appendFile dfn (template "merge" (bug_name src) ^ readFile sfn);
   remove_symlink `Open sfn;
   git_edit dfn;
@@ -339,7 +350,7 @@ let merge args =
 
 let show args =
   let id = get_bug_id args in
-  viewFile (bug_file id)
+  viewFile (fst @@ bug_file id)
 
 let use_autoclose _ =
   let edited pc =
