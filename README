@@ -34,26 +34,24 @@ Usage:
 
   Maybe look at it and edit it:
     $ gitbug
-    $ gitbug show 1
-    $ gitbug edit 1
+    $ gitbug show .*first
+    $ gitbug edit .*first
 
   You could also fix the bug:
     $ echo my great fix >> foo
 
   And then tell Gitbug what you did:
-    $ git commit -a -m 'foo: fixed bug, FIX[1]'
-  or
     $ git commit -a -m 'foo: fixed bug'
-    $ gitbug close 1
+    $ gitbug close .*first
 
   That fix wasn't a fix at all, let us reopen the bug:
-    $ gitbug reopen 1
+    $ gitbug reopen .*first
 
   Make a second bug:
     $ gitbug add Bug number two
 
   Oh, it is a duplicate of the first bug:
-    $ gitbug merge 1 2
+    $ gitbug merge .*first .*two
 
   Listing bugs is most useful:
     $ gitbug

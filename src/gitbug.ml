@@ -202,7 +202,7 @@ let new_bug_file name =
 
 let bug_file ?(dir = all_bugs_dir ()) id =
   let f = file_with_id dir id in
-    (dir ^/ f, xfind "[^_]+" f)
+    (dir ^/ f, f)
 
 let bug_name = Ticket.title @. Ticket.from_file @. fst @. bug_file
 
@@ -283,10 +283,12 @@ let git_bug_merge src dst = git_do (fun () ->
   git_commit (sprintf "BUG merged: [%s] -> [%s]" src dst)) ()
 
 let get_bug_list status =
-  let dir = dir_of_status status in
-  ls dir
-    |> filter (fun n -> isFile (dir ^/ n))
-    |> sortBy (fun n -> mtime (dir ^/ n))
+  try
+    let dir = dir_of_status status in
+    ls dir
+      |> filter (fun n -> isFile (dir ^/ n))
+      |> sortBy (fun n -> mtime (dir ^/ n))
+  with Sys_error _ -> []
 
 let get_bug_name = function
   | [] -> printf "Enter bug name: %!"; read_line ()
