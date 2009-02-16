@@ -28,6 +28,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 open Prelude
 
+exception Ambiguous_bug_id of string * string
+
 let editor () = maybeNF "/bin/vi" Sys.getenv "EDITOR"
 let editorCmd () = editor () |> strip |> xsplit "\\s+"
 let editFile filename = command (editorCmd () @ [filename])
@@ -291,7 +293,10 @@ let get_bug_name = function
   | args -> join " " args
 
 let find_bug_id s =
-  let find_bug re l = List.find (fun b -> rexmatch re b) l in
+  let find_bug re l = match List.filter (fun b -> rexmatch re b) l with
+    | [] -> raise Not_found
+    | [x] -> x
+    | ids -> raise (Ambiguous_bug_id (s, join ", " ids)) in
   let re = rex ("^"^s) in
   try find_bug re (get_bug_list `Open)
   with Not_found -> find_bug re (get_bug_list `Close)
