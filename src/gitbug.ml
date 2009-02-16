@@ -367,13 +367,14 @@ let use_autoclose _ =
       | "#!/bin/sh"::t -> any (not @. xmatch "^\\s*([:#].*|\\s*)$") t
       | _ -> true in
   let post_commit = git_dir () ^/ "hooks" ^/ "post-commit" in
-  if not (fileExists post_commit) || edited post_commit
+  if fileExists post_commit && edited post_commit
   then begin
     puts ".git/hooks/post-commit has been edited";
     puts "Please add the autoclose hook manually by calling:";
     puts (sprintf "  %s autoclose;" Sys.argv.(0));
     puts "at the end of your post-commit hook."
   end else begin
+    if not (fileExists post_commit) then writeFile post_commit "#!/bin/sh\n";
     appendFile post_commit (sprintf "\n%s autoclose;\n" Sys.argv.(0));
     chmod 0o755 post_commit
   end

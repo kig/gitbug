@@ -34,13 +34,22 @@ Usage:
 
   Maybe look at it and edit it:
     $ gitbug
-    $ gitbug show .*first
+    -- Open bugs
+    444468c69994_This_is_my_first_bug       2009-02-16 15:39:18+0200
+
+    $ gitbug show .*first 
     $ gitbug edit .*first
 
-  You could also fix the bug:
+  Gitbug treats the pattern as a regexp prefixed by `^', so `.*first' 
+  means `^.*first'. Hence you can use the prefix of the hexadecimal part 
+  without the `.*', e.g. `gitbug show 4444`.
+
+  You should fix the bug:
     $ echo my great fix >> foo
 
   And then tell Gitbug what you did:
+    $ git commit -a -m 'foo: fixed bug, FIX[.*first]'
+  or
     $ git commit -a -m 'foo: fixed bug'
     $ gitbug close .*first
 
