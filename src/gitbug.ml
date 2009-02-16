@@ -190,16 +190,8 @@ let template tmpl name =
   ]
 
 
-let matches_id id fname = rexmatch (rex ("^"^(escape_rex id)^"$")) fname
-
 let file_with_id dir id =
-  try
-    match ls dir |> filter (matches_id id) with
-        [file] -> file
-      | [] -> raise Not_found
-      | l -> putStrLn @@ "ID " ^ id ^ " is ambiguous. The following bugs match:";
-             iter putStrLn l;
-             failwith "Ambiguous ID."
+  try ls dir |> find (fun f -> f = id)
   with Sys_error _ -> raise Not_found
 
 let new_bug_file name =
