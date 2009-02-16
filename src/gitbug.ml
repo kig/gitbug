@@ -327,7 +327,7 @@ let autoclose args =
   let last_commit = readGit "log" ["-1"] in
   let bugs = if smatch "    BUG closed:" last_commit then [] else (* prevent loop *)
     last_commit
-    |> scan_nth "\\bFIX[EDS]*:?\\s*\\[([0-9a-f,\n ]+)\\]" 1
+    |> scan_nth "\\bFIX[EDS]*:?\\s*\\[([^\\]]+)\\]" 1
     |> concatMap (xsplit "[ ,\n]+") in
   match bugs with
     | [] -> ()
