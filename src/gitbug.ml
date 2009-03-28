@@ -300,8 +300,11 @@ let get_bug_id = function
   | _ -> printf "Enter bug ID: %!"; read_line ()
 
 let show_bug dir name =
-  let time = showTime @@ mtime (dir ^/ name) in
-  sprintf "%-53s %s" name time
+  let file = dir ^/ name in
+  let time = showTime @@ mtime file in
+  let title = Ticket.title @@ Ticket.from_file file in
+    sprintf "%-8s  %-41s  %s" (xfind "^[^_]{0,8}" name)
+      (String.sub title 0 (min 41 @@ slen title)) time
 
 let print_bug = puts @.. show_bug
 
