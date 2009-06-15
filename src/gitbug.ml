@@ -28,6 +28,8 @@ OTHER DEALINGS IN THE SOFTWARE.
 
 open Prelude
 
+exception Ambiguous_bug_id of string * string
+
 let editor () = maybeNF "/bin/vi" Sys.getenv "EDITOR"
 let editorCmd () = editor () |> strip |> xsplit "\\s+"
 let editFile filename = command (editorCmd () @ [filename])
@@ -190,19 +192,8 @@ let template tmpl name =
   ]
 
 
-let matches_id id fname =
-  match rexscan_nth (rex "^[0-9a-z]+") 0 (ssub 0 (slen id) fname) with
-      [id'] when id = id' -> true
-    | _ -> false
-
 let file_with_id dir id =
-  try
-    match ls dir |> filter (matches_id id) with
-        [file] -> file
-      | [] -> raise Not_found
-      | l -> putStrLn @@ "ID " ^ id ^ " is ambiguous. The following bugs match:";
-             iter putStrLn l;
-             failwith "Ambiguous ID."
+  try ls dir |> find (fun f -> f = id)
   with Sys_error _ -> raise Not_found
 
 let new_bug_file name =
@@ -211,7 +202,7 @@ let new_bug_file name =
 
 let bug_file ?(dir = all_bugs_dir ()) id =
   let f = file_with_id dir id in
-    (dir ^/ f, xfind "[^_]+" f)
+    (dir ^/ f, f)
 
 let bug_name = Ticket.title @. Ticket.from_file @. fst @. bug_file
 
@@ -291,13 +282,30 @@ let git_bug_merge src dst = git_do (fun () ->
   git_edit dfn;
   git_commit (sprintf "BUG merged: [%s] -> [%s]" src dst)) ()
 
+let get_bug_list status =
+  try
+    let dir = dir_of_status status in
+    ls dir
+      |> filter (fun n -> isFile (dir ^/ n))
+      |> sortBy (fun n -> mtime (dir ^/ n))
+  with Sys_error _ -> []
+
 let get_bug_name = function
   | [] -> printf "Enter bug name: %!"; read_line ()
   | args -> join " " args
 
+let find_bug_id s =
+  let find_bug re l = match List.filter (fun b -> rexmatch re b) l with
+    | [] -> raise Not_found
+    | [x] -> x
+    | ids -> raise (Ambiguous_bug_id (s, join ", " ids)) in
+  let re = rex ("^"^s) in
+  try find_bug re (get_bug_list `Open)
+  with Not_found -> find_bug re (get_bug_list `Close)
+
 let get_bug_id = function
-  | [id] -> id
-  | _ -> printf "Enter bug ID: %!"; read_line ()
+  | [id] -> find_bug_id id
+  | _ -> printf "Enter bug ID: %!"; find_bug_id (read_line ())
 
 let show_bug dir name =
   let file = dir ^/ name in
@@ -322,11 +330,12 @@ let autoclose args =
   let last_commit = readGit "log" ["-1"] in
   let bugs = if smatch "    BUG closed:" last_commit then [] else (* prevent loop *)
     last_commit
-    |> scan_nth "\\bFIX[EDS]*:?\\s*\\[([0-9a-f,\n ]+)\\]" 1
+    |> scan_nth "\\bFIX[EDS]*:?\\s*\\[([^\\]]+)\\]" 1
     |> concatMap (xsplit "[ ,\n]+") in
   match bugs with
     | [] -> ()
     | bugs ->
+      let bugs = map find_bug_id bugs in
       git_bug_autoclose bugs;
       puts (sprintf "Autoclosed bug(s): %s" (bugs |> join ", "))
 
@@ -335,21 +344,17 @@ let reopen = do_with_bug_id git_bug_reopen "Reopened bug: %s."
 let edit = do_with_bug_id git_bug_edit "Edited bug: %s."
 
 let list args =
-  let dir, dir_name = match args with
-    | [] | "open"::_ -> dir_of_status `Open, "Open"
-    | "closed"::_ -> dir_of_status `Close, "Closed"
+  let status, dir_name = match args with
+    | [] | "open"::_ -> `Open, "Open"
+    | "closed"::_ -> `Close, "Closed"
     | x::_ -> invalid_arg (sprintf "Unknown bug category: %S" x) in
   printfnl "-- %s bugs" dir_name;
-  try
-    ls dir
-      |> filter (fun n -> isFile (dir ^/ n))
-      |> sortBy (fun n -> mtime (dir ^/ n))
-      |> iter (print_bug dir)
+  try get_bug_list status |> iter (print_bug (dir_of_status status))
   with Sys_error _ -> ()
 
 let merge args =
   let dst, src = match args with
-    | s::d::[] -> s, d
+    | s::d::[] -> find_bug_id s, find_bug_id d
     | _ -> invalid_arg "merge src dst: wrong amount of args" in
   git_bug_merge src dst;
   printfnl "Merged bug %s into %s" src dst
@@ -365,13 +370,14 @@ let use_autoclose _ =
       | "#!/bin/sh"::t -> any (not @. xmatch "^\\s*([:#].*|\\s*)$") t
       | _ -> true in
   let post_commit = git_dir () ^/ "hooks" ^/ "post-commit" in
-  if not (fileExists post_commit) || edited post_commit
+  if fileExists post_commit && edited post_commit
   then begin
     puts ".git/hooks/post-commit has been edited";
     puts "Please add the autoclose hook manually by calling:";
     puts (sprintf "  %s autoclose;" Sys.argv.(0));
     puts "at the end of your post-commit hook."
   end else begin
+    if not (fileExists post_commit) then writeFile post_commit "#!/bin/sh\n";
     appendFile post_commit (sprintf "\n%s autoclose;\n" Sys.argv.(0));
     chmod 0o755 post_commit
   end
