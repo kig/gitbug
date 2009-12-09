@@ -251,13 +251,15 @@ let git_bug_autoclose = git_do (fun bugs ->
     with _ -> ()
   end)
 
+let digest_of_id = first @. split "_"
+
 let git_bug_close = git_do (fun id ->
   let bug, id = bug_file id in
   let name = bug_name id in
   append_to_file `Close bug @@ template "close" name;
   git_edit bug;
   close_bug bug;
-  git_commit (sprintf "BUG closed: [%s] %s" id name))
+  git_commit (sprintf "BUG closed: [%s] %s" (digest_of_id id) name))
 
 let git_bug_reopen = git_do (fun id ->
   let bug, id = bug_file id in
@@ -265,14 +267,14 @@ let git_bug_reopen = git_do (fun id ->
   append_to_file `Open bug @@ template "reopen" name;
   git_edit bug;
   open_bug bug;
-  git_commit (sprintf "BUG reopened: [%s] %s" id name))
+  git_commit (sprintf "BUG reopened: [%s] %s" (digest_of_id id) name))
 
 let git_bug_edit = git_do (fun id ->
   let bug, id = bug_file id in
   let name = bug_name id in
   appendFile bug (template "edit" name);
   git_edit bug;
-  git_commit (sprintf "BUG edited: [%s] %s" id name))
+  git_commit (sprintf "BUG edited: [%s] %s" (digest_of_id id) name))
 
 let git_bug_merge src dst = git_do (fun () ->
   let sfn, src = bug_file src in
@@ -280,7 +282,7 @@ let git_bug_merge src dst = git_do (fun () ->
   appendFile dfn (template "merge" (bug_name src) ^ readFile sfn);
   remove_symlink `Open sfn;
   git_edit dfn;
-  git_commit (sprintf "BUG merged: [%s] -> [%s]" src dst)) ()
+  git_commit (sprintf "BUG merged: [%s] -> [%s]" (digest_of_id src) (digest_of_id dst))) ()
 
 let get_bug_list status =
   try
