@@ -83,21 +83,44 @@ let string_of_status = function
 module Ticket =
 struct
   module SM = Map.Make(struct type t = string let compare = String.compare end)
-  type t = { headers : string SM.t; body : string list }
+  type t = { headers : string SM.t; last_modified : float; body : string list }
 
   let strip_blank_lines = dropWhile (xmatch "^\\s*$")
 
   let make name status body =
+    let now = timeNow () in
     let hs = foldl (fun m (k, v) -> SM.add k v m) SM.empty
                [
                  "status", string_of_status status;
                  "author", name_and_email ();
-                 "date", showTime @@ timeNow ();
+                 "date", showTime @@ now;
                  "title", name;
+                 "last modified", showTime @@ now;
                  "reported by", "";
                  "assigned to", "";
                ]
-    in { headers = hs; body = strip_blank_lines body }
+    in { headers = hs; last_modified = now; body = strip_blank_lines body; }
+
+  let last_modified t = t.last_modified
+
+  let date_of_string s = Netdate.since_epoch (Netdate.parse s)
+
+  let comp_last_modified fname headers body =
+    try
+      date_of_string (SM.find "last modified" headers)
+    with _ ->
+        match concatMap (rexscan_nth (rex "^--.* on (.*)$") 1) body with
+            [] -> mtime fname
+          | l ->
+             let rec loop t = function
+                 [] -> (match t with None -> mtime fname | Some t -> t)
+               | s :: tl ->
+                 let t' = try Some (date_of_string s) with _ -> None in
+                   match t, t' with
+                       None, None -> loop None tl
+                     | Some t, None | None, Some t -> loop (Some t) tl
+                     | Some t, Some t' -> loop (Some (max t t')) tl
+             in loop None l
 
   let from_file fname =
     let headers, body = span (xmatch "^[^:]*:") @@ readLines fname in
@@ -105,9 +128,16 @@ struct
                        [k; v] -> SM.add k (strip v) m
                      | _ -> m)
               SM.empty headers
-    in { headers = m; body = strip_blank_lines body }
+    in { headers = m;
+         last_modified = comp_last_modified fname m body;
+         body = strip_blank_lines body }
 
   let set_header k v t = { t with headers = SM.add k (strip v) t.headers }
+
+  let set_last_modified v t =
+    { t with last_modified = v;
+              headers = SM.add "last modified" (showTime v) t.headers;
+    }
 
   let title t = maybeNF "" (SM.find "title") t.headers
 
@@ -212,7 +242,9 @@ let appendFile file = appendFile @@ make_file_dir file
 let append_to_file status file text =
   let module T = Ticket in
   writeFile file @@
-    (T.to_string @@ T.set_header "status" (string_of_status status) @@ T.from_file file) ^
+    (T.to_string @@
+     T.set_last_modified (timeNow ()) @@
+     T.set_header "status" (string_of_status status) @@ T.from_file file) ^
     text
 
 let open_bug fn =
@@ -289,7 +321,7 @@ let get_bug_list status =
     let dir = dir_of_status status in
     ls dir
       |> filter (fun n -> isFile (dir ^/ n))
-      |> sortBy (fun n -> mtime (dir ^/ n))
+      |> sortBy (fun n -> Ticket.last_modified (Ticket.from_file (dir ^/ n)))
   with Sys_error _ -> []
 
 let get_bug_name = function
@@ -311,8 +343,9 @@ let get_bug_id = function
 
 let show_bug dir name =
   let file = dir ^/ name in
-  let time = showTime @@ mtime file in
-  let title = Ticket.title @@ Ticket.from_file file in
+  let ticket = Ticket.from_file file in
+  let time = showTime (Ticket.last_modified ticket) in
+  let title = Ticket.title ticket in
     sprintf "%-8s  %-41s  %s" (xfind "^[^_]{0,8}" name)
       (String.sub title 0 (min 41 @@ slen title)) time
 
