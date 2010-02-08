@@ -262,6 +262,10 @@ let git_bug_add = git_do (fun name ->
   open_bug bug;
   git_commit (sprintf "BUG added: [%s] %s" id name))
 
+let digest_of_id s =
+  let s = first (split "_" s) in
+    String.sub s 0 (min 7 (String.length s))
+
 let git_bug_autoclose = git_do (fun bugs ->
   bugs |> iter begin fun id ->
     try
@@ -274,7 +278,7 @@ let git_bug_autoclose = git_do (fun bugs ->
       close_bug bug;
       git "commit" [
         "--quiet";
-        "-m"; (sprintf "BUG closed: [%s] %s" id name);
+        "-m"; (sprintf "BUG closed: [%s] %s" (digest_of_id id) name);
         bug;
         all_bugs_dir () ^/ base;
         dir_of_status `Close ^/ base;
@@ -282,8 +286,6 @@ let git_bug_autoclose = git_do (fun bugs ->
       ]
     with _ -> ()
   end)
-
-let digest_of_id = first @. split "_"
 
 let git_bug_close = git_do (fun id ->
   let bug, id = bug_file id in
